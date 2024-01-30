@@ -9,27 +9,35 @@ const logger = require('morgan');
 const path = require('path');
 require('dotenv').config();
 
-// Passport session set up for persistent login sessions --> serialize and deserialize user info
-passport.serializeUser(function (user,done) {
+const ensureAuthenticated = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/');
+};
+
+// Passport session set up for persistent login sessions
+// serialize and deserialize user info
+passport.serializeUser(function(user, done) {
   done(null, user);
 });
 
-passport.deserializeUser(function(obj,done) {
+passport.deserializeUser(function(obj, done) {
   done(null, obj);
 });
 
 // Stream login strategy set up
 passport.use(new SteamStrategy({
-      returnURL: 'http://localhost:3000/auth/steam/return',
-      realm: 'http://localhost:3000/',
-      apiKey: process.env.STEAM_API_KEY
-    },
-    function(identifier, profile, done) {
-      process.nextTick(function () {
-        profile.identifier = identifier;
-        return done(null, profile);
-      });
-    }
+  returnURL: 'http://localhost:3000/auth/steam/return',
+  realm: 'http://localhost:3000/',
+  apiKey: process.env.STEAM_API_KEY,
+},
+function(identifier, profile, done) {
+  process.nextTick(function() {
+    profile.identifier = identifier;
+    return done(null, profile);
+  });
+},
 ));
 
 const app = express();
@@ -47,7 +55,7 @@ app.use(session({
   secret: 'your secret',
   name: 'name of session id',
   resave: true,
-  saveUninitialized: true
+  saveUninitialized: true,
 }));
 
 
@@ -56,11 +64,11 @@ app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', function(req, res) {
-  res.render('index', { user: req.user });
+  res.render('index', {user: req.user});
 });
 
 app.get('/account', ensureAuthenticated, function(req, res) {
-  res.render('account', { user: req.user });
+  res.render('account', {user: req.user});
 });
 
 app.get('/logout', function(req, res) {
@@ -72,14 +80,10 @@ app.get('/logout', function(req, res) {
 app.use('/auth', authRoutes);
 
 console.log(process.env.PORT);
-//const port = process.env.PORT || 3000;
+// const port = process.env.PORT || 3000;
 app.listen(process.env.PORT, () => {
-  console.log(`Server is running on port 3000`)}
+  console.log(`Server is running on port 3000`);
+},
 );
-
-function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) { return next(); }
-  res.redirect('/');
-}
 
 module.exports = app;
