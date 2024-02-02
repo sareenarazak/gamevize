@@ -2,7 +2,10 @@
     <h2>Welcome! Please log in.</h2>
     <p><a href="auth/steam">Sign On with Steam</a></p>
 <% } else { %>
-    <h2>Hello, <%= user.displayName %>. - <a href='logout'>Logout</a></h2>
+    <h2>Hello, <%= user.displayName %></h2>
+    <form action="logout" method="post">
+        <button>Logout</button>
+    </form>
 <% } %>
 
 <!-- Should redirect to homepage if you're not logged in -->

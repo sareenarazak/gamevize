@@ -71,18 +71,21 @@ app.get('/account', ensureAuthenticated, function(req, res) {
   res.render('account', {user: req.user});
 });
 
-app.get('/logout', function(req, res) {
-  req.logout();
-  res.redirect('/');
+app.post('/logout', function(req, res, next) {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+    res.redirect('/');
+  });
 });
 
 // See views/auth.js for authentication routes
 app.use('/auth', authRoutes);
 
-console.log(process.env.PORT);
-// const port = process.env.PORT || 3000;
-app.listen(process.env.PORT, () => {
-  console.log(`Server is running on port 3000`);
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 },
 );
 
