@@ -87,9 +87,4 @@ app.post("/logout", function (req, res, next) {
 // See views/auth.js for authentication routes
 app.use("/auth", authRoutes);
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
-
 module.exports = app;
