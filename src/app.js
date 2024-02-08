@@ -9,24 +9,32 @@ const logger = require("morgan");
 const path = require("path");
 require("dotenv").config();
 
-const ensureAuthenticated = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.redirect("/");
-};
+const app = express();
 
-// Passport session set up for persistent login sessions
-// serialize and deserialize user info
-passport.serializeUser(function (user, done) {
-  done(null, user);
-});
+// view engine setup
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "ejs");
+app.use(express.static(path.join(__dirname, "public")));
 
-passport.deserializeUser(function (obj, done) {
-  done(null, obj);
-});
+// Logging and Json parsing middlware
+app.use(logger("dev"));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-// Stream login strategy set up
+// Session middleware set up
+app.use(
+  session({
+    secret: "your secret",
+    name: "name of session id",
+    resave: true,
+    saveUninitialized: true,
+  }),
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Stream auth strategy
 passport.use(
   new SteamStrategy(
     {
@@ -43,31 +51,25 @@ passport.use(
   ),
 );
 
-const app = express();
+// Serialize and deserialize user info
+passport.serializeUser(function (user, done) {
+  done(null, user);
+});
 
-// view engine setup
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "ejs");
+passport.deserializeUser(function (obj, done) {
+  done(null, obj);
+});
 
-app.use(logger("dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Custom middleware to ensure authentication
+const ensureAuthenticated = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect("/");
+};
 
-// session set up
-app.use(
-  session({
-    secret: "your secret",
-    name: "name of session id",
-    resave: true,
-    saveUninitialized: true,
-  }),
-);
-
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(express.static(path.join(__dirname, "public")));
-
-app.get("/", function (req, res) {
+// Routes
+app.get("/", (req, res) => {
   res.render("index", { user: req.user });
 });
 
@@ -84,7 +86,6 @@ app.post("/logout", function (req, res, next) {
   });
 });
 
-// See views/auth.js for authentication routes
 app.use("/auth", authRoutes);
 
 module.exports = app;
