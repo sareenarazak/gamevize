@@ -1,11 +1,12 @@
 const express = require("express");
 const passport = require("passport");
 const authRoutes = require("./routes/auth");
-
+const statsRouter = require("./routes/stats");
 const session = require("express-session");
 const SteamStrategy = require("passport-steam").Strategy;
 const logger = require("morgan");
 
+const ensureAuthenticated = authRoutes.ensureAuthenticated;
 const path = require("path");
 require("dotenv").config();
 
@@ -60,14 +61,6 @@ passport.deserializeUser(function (obj, done) {
   done(null, obj);
 });
 
-// Custom middleware to ensure authentication
-const ensureAuthenticated = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.redirect("/");
-};
-
 // Routes
 app.get("/", (req, res) => {
   res.render("index", { user: req.user });
@@ -86,6 +79,7 @@ app.post("/logout", function (req, res, next) {
   });
 });
 
-app.use("/auth", authRoutes);
+app.use("/auth", authRoutes.router);
+app.use("/stats", statsRouter.router);
 
 module.exports = app;

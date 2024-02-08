@@ -19,4 +19,12 @@ router.get(
   },
 );
 
-module.exports = router;
+// Custom middleware to ensure authentication
+const ensureAuthenticated = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect("/");
+};
+
+module.exports = { router, ensureAuthenticated };
